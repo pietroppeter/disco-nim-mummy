@@ -5,7 +5,11 @@ let ws, timer, delay = 500;
 function connect() {
   ws = new WebSocket((location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/ws");
   ws.onopen = () => { delay = 500; s.textContent = "live"; s.className = "s on"; };
-  ws.onmessage = (e) => { n.textContent = e.data; };
+  ws.onmessage = (e) => {
+    const m = JSON.parse(e.data); // {"count": 7, "clients": 2}
+    n.textContent = m.count;
+    s.textContent = "live (" + m.clients + ")";
+  };
   ws.onclose = () => {
     s.textContent = "reconnecting"; s.className = "s";
     timer = setTimeout(connect, delay); delay = Math.min(delay * 2, 10000);

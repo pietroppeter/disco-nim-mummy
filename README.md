@@ -35,7 +35,9 @@ A WebSocket is a connection the browser keeps open, and either side can send a
 message on it at any time.
 
 - On load, the page script (`client.js`) opens a WebSocket to `/ws`. The server
-  adds it to a set of connected clients and sends the current count.
+  adds it to a set of connected clients and sends every client a small JSON
+  message with the count and how many clients are connected, shown as
+  "live (N)". It sends that again whenever a client connects or leaves.
 - Clicking +1 sends `inc` over the socket instead of submitting the form, so the
   page doesn't reload. Without a connection (or without JavaScript), the form
   still posts to `/increment`.

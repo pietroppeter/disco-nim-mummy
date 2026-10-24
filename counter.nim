@@ -33,13 +33,20 @@ proc getCount(): int =
     {.gcsafe.}:
       result = db.getValue(sql"SELECT value FROM counter WHERE id = 1").parseInt
 
+proc pushState(count: int) =
+  ## Sends the count and the number of connected browsers to all of them.
+  ## Callers must hold dbLock.
+  {.gcsafe.}:
+    let msg = """{"count":""" & $count & ""","clients":""" & $clients.len & "}"
+    for client in clients:
+      client.send(msg)
+
 proc increment(): int =
   ## Increments and pushes the new count to every connected browser.
   withLock dbLock:
     {.gcsafe.}:
       result = db.getValue(sql"UPDATE counter SET value = value + 1 WHERE id = 1 RETURNING value").parseInt
-      for client in clients:
-        client.send($result)
+      pushState(result)
 
 proc page(count: int): string =
   ("""<!doctype html>
@@ -84,12 +91,13 @@ proc wsUpgradeHandler(request: Request) =
 proc websocketHandler(websocket: WebSocket, event: WebSocketEvent, message: Message) =
   case event
   of OpenEvent:
-    # Register and send the current count in one step, so a (re)connecting
-    # tab catches up without missing or reordering an increment.
+    # Register and push the state in one step, so a (re)connecting tab catches
+    # up without missing or reordering an increment, and every other tab sees
+    # the new number of connected clients.
     withLock dbLock:
       {.gcsafe.}:
         clients.incl(websocket)
-        websocket.send(db.getValue(sql"SELECT value FROM counter WHERE id = 1"))
+        pushState(db.getValue(sql"SELECT value FROM counter WHERE id = 1").parseInt)
   of MessageEvent:
     if message.kind == TextMessage and message.data == "inc":
       discard increment()
@@ -99,6 +107,7 @@ proc websocketHandler(websocket: WebSocket, event: WebSocketEvent, message: Mess
     withLock dbLock:
       {.gcsafe.}:
         clients.excl(websocket)
+        pushState(db.getValue(sql"SELECT value FROM counter WHERE id = 1").parseInt)
 
 proc heartbeat() {.thread.} =
   # Ping every client periodically so idle connections are not dropped by
