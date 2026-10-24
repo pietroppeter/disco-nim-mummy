@@ -1,0 +1,4 @@
+nimcache/
+counter
+*.db
+*.db-*

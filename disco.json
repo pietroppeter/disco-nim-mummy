@@ -1,0 +1,17 @@
+{
+    "version": "1.0",
+    "services": {
+        "web": {
+            "port": 8000,
+            "volumes": [
+                {
+                    "name": "counter-data",
+                    "destinationPath": "/data"
+                }
+            ],
+            "health": {
+                "command": "wget -q -O /dev/null http://127.0.0.1:8000/health"
+            }
+        }
+    }
+}
