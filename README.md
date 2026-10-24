@@ -3,6 +3,8 @@
 A minimal [Disco](https://disco.cloud) example: a click counter written in Nim,
 served by [Mummy](https://github.com/guzba/mummy), stored in SQLite.
 
+Live at <https://counter.pietroppeter.xyz>.
+
 - `GET /` shows the count with a +1 button (`POST /increment`)
 - `GET /api/count` and `POST /api/increment` return JSON
 - `GET /health` is used by the Disco health check

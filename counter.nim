@@ -50,7 +50,7 @@ proc page(count: int): string =
 .s{color:#888}.s.on{color:#2a2}</style>
 </head><body><div class="c"><div class="n" id="n">$1</div>
 <form method="post" action="/increment" id="f"><button>+1</button></form>
-<p><small>Nim + Mummy + SQLite, deployed with Disco</small></p>
+<p><small>Nim + Mummy + SQLite, deployed with Disco · <a href="https://github.com/pietroppeter/disco-nim-mummy">source</a></small></p>
 <p><small class="s" id="s">offline</small></p></div>
 <script>""" % [$count]) & clientJs & "</script></body></html>"
 
