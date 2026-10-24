@@ -6,6 +6,9 @@ served by [Mummy](https://github.com/guzba/mummy), stored in SQLite.
 - `GET /` shows the count with a +1 button (`POST /increment`)
 - `GET /api/count` and `POST /api/increment` return JSON
 - `GET /health` is used by the Disco health check
+- `GET /ws` is a WebSocket that pushes the new count to every open tab on each
+  increment, so all clients stay in sync without reloading. The +1 button sends
+  `inc` over it; without a connection it falls back to the plain form POST.
 
 ## How it fits Disco
 
@@ -16,6 +19,12 @@ served by [Mummy](https://github.com/guzba/mummy), stored in SQLite.
   `counter-data` at `/data`, where the database lives (`DB_PATH=/data/counter.db`).
   The count survives redeploys.
 - SQLite runs in WAL mode, and a lock serialises access across Mummy's worker threads.
+- Disco's Caddy proxy passes WebSockets through with no extra config. Connections
+  drop on every redeploy (and when phones background the tab), so the page
+  reconnects with backoff and the server resends the current count on connect.
+  A ping every 25 s keeps idle connections from being cut by intermediaries.
+- Live sync assumes one container. Scaling `web` to several replicas would need
+  a shared pub/sub (or polling the DB) so each replica hears the others' increments.
 
 ## Run locally
 
