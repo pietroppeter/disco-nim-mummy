@@ -28,6 +28,44 @@ Or without Docker: `nimble build && DB_PATH=./counter.db ./counter`.
 
 ## Deploy
 
-Push this folder to a GitHub repo, then add it as a project in Disco
-(`disco projects:add`, pointing at the repo and a domain). Disco builds the
-Dockerfile on the server and routes the domain to the `web` service.
+You need a server with SSH access as root, for example a Hetzner CX23
+running Ubuntu, and the [Disco CLI](https://github.com/letsdiscodev/cli):
+
+```sh
+curl -fsSL https://cli-assets.letsdisco.dev/install.sh | sh
+```
+
+1. Install Disco on the server. Using the bare IP gets you a free
+   `*.ondis.co` host; use a hostname instead if you have DNS pointing at it.
+
+   ```sh
+   disco init root@<server-ip>
+   ```
+
+2. Give Disco access to the repo. This opens GitHub in the browser to
+   install a GitHub App; pick this repository.
+
+   ```sh
+   disco github:apps:add
+   ```
+
+3. Add the project. This runs the first deployment. Without `--domain`
+   the app is served at `counter.<your disco host>`.
+
+   ```sh
+   disco projects:add --name counter --github pietroppeter/disco-nim-mummy
+   # or with your own domain (point its DNS A record at the server first):
+   disco projects:add --name counter --github pietroppeter/disco-nim-mummy --domain counter.example.com
+   ```
+
+From then on, every `git push` to `main` redeploys. Disco builds the
+Dockerfile on the server, and the `counter-data` volume keeps the count
+across deployments.
+
+Useful afterwards:
+
+```sh
+disco logs --project counter          # follow the app logs
+disco deploy --project counter        # redeploy the latest commit by hand
+disco deploy --project counter --dir . # deploy local files without pushing
+```
