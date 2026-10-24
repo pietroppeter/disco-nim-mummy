@@ -6,6 +6,7 @@ served by [Mummy](https://github.com/guzba/mummy), stored in SQLite.
 - `GET /` shows the count with a +1 button (`POST /increment`)
 - `GET /api/count` and `POST /api/increment` return JSON
 - `GET /health` is used by the Disco health check
+- `GET /ws` is a WebSocket that keeps every open tab in sync (see below)
 
 ## How it fits Disco
 
@@ -16,6 +17,32 @@ served by [Mummy](https://github.com/guzba/mummy), stored in SQLite.
   `counter-data` at `/data`, where the database lives (`DB_PATH=/data/counter.db`).
   The count survives redeploys.
 - SQLite runs in WAL mode, and a lock serialises access across Mummy's worker threads.
+- Disco's Caddy proxy passes WebSockets through with no extra config. Connections
+  drop on every redeploy (and when phones background the tab), so the page
+  reconnects with backoff and the server resends the current count on connect.
+  A ping every 25 s keeps idle connections from being cut by intermediaries.
+- Live sync assumes one container. Scaling `web` to several replicas would need
+  a shared pub/sub (or polling the DB) so each replica hears the others' increments.
+
+## How live sync works
+
+Plain HTTP only answers requests, so a tab can't learn that another tab clicked.
+A WebSocket is a connection the browser keeps open, and either side can send a
+message on it at any time.
+
+- On load, the page script (`client.js`) opens a WebSocket to `/ws`. The server
+  adds it to a set of connected clients and sends the current count.
+- Clicking +1 sends `inc` over the socket instead of submitting the form, so the
+  page doesn't reload. Without a connection (or without JavaScript), the form
+  still posts to `/increment`.
+- Every increment (button, form or API) updates SQLite and sends the new count
+  to every connected client. One lock covers the database and the client set,
+  so updates arrive in order.
+- If the connection drops, the script reconnects with growing delays (0.5 s up
+  to 10 s), and right away when a phone tab comes back to the foreground.
+- `client.js` is a separate file for editing and syntax highlighting. It is
+  embedded into the binary at compile time with `staticRead`, so the app is
+  still a single file to deploy.
 
 ## Run locally
 
