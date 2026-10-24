@@ -1,9 +1,11 @@
 # disco-nim-mummy
 
-A minimal [Disco](https://disco.cloud) example: a click counter written in Nim,
+A minimal [Disco](https://disco.cloud) example: a click counter written in [Nim](https://nim-lang.org/),
 served by [Mummy](https://github.com/guzba/mummy), stored in SQLite.
 
 Live at <https://counter.pietroppeter.xyz>.
+
+This is an educational project to learn more about how to deploy apps.
 
 - `GET /` shows the count with a +1 button (`POST /increment`)
 - `GET /api/count` and `POST /api/increment` return JSON
