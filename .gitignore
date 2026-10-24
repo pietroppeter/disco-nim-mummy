@@ -1,4 +1,4 @@
 nimcache/
-counter
+/counter
 *.db
 *.db-*

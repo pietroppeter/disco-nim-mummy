@@ -4,7 +4,6 @@ version       = "0.1.0"
 author        = "Pietro Peterlongo"
 description   = "Minimal Disco example: a counter with Mummy and SQLite"
 license       = "MIT"
-srcDir        = "src"
 bin           = @["counter"]
 
 # Dependencies

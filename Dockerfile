@@ -3,7 +3,7 @@ FROM nimlang/nim:2.2.4-alpine-regular AS build
 WORKDIR /app
 COPY counter.nimble .
 RUN nimble install -y --depsOnly
-COPY src ./src
+COPY counter.nim .
 RUN nimble build -y -d:release --opt:speed
 
 # Runtime stage: same Alpine release as the build image, so musl matches.
